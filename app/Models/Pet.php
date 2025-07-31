@@ -41,4 +41,9 @@ class Pet extends Model
     {
         return $this->hasMany(Booking::class);
     }
+
+     public function schedules()
+    {
+        return $this->hasMany(Schedule::class);
+    }
 }

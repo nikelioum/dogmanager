@@ -74,6 +74,11 @@ class User extends Authenticatable
         });
     }
 
+    public function schedules()
+    {
+        return $this->hasMany(Schedule::class, 'employee_id');
+    }
+
     /**
      * Check if the user can have addresses or pets (must be a customer).
      */

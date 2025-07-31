@@ -34,4 +34,9 @@ class Address extends Model
     {
         return $this->hasMany(Pet::class);
     }
+
+     public function schedules()
+    {
+        return $this->hasMany(Schedule::class);
+    }
 }

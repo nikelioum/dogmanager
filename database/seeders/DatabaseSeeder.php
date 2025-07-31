@@ -21,6 +21,8 @@ class DatabaseSeeder extends Seeder
             PetSeeder::class,
             RoomSeeder::class,
             BookingSeeder::class,
+            ServiceSeeder::class,
+            ScheduleSeeder::class,
         ]);
     }
 }
