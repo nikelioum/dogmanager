@@ -10,7 +10,6 @@ use App\Http\Controllers\RoomController;
 use App\Http\Controllers\BookingController;
 use App\Http\Controllers\ServiceController;
 use App\Http\Controllers\SchedulesController;
-use App\Http\Middleware\AdminOrEmployeeMiddleware;
 
 Route::get('/', function () {
     return Inertia::render('Welcome');
@@ -21,7 +20,7 @@ Route::get('dashboard', function () {
 })->middleware(['auth', 'verified'])->name('dashboard');
 
 
-Route::middleware(['auth:sanctum', 'verified', 'adminOrEmployee'])->group(function () {
+Route::middleware(['verified', 'adminOrEmployee'])->group(function () {
     Route::resource('roles', RoleController::class);
     Route::resource('users', UserController::class);
     Route::resource('addresses', AddressController::class);
