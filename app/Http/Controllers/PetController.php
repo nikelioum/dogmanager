@@ -2,7 +2,11 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Pet;
+use App\Models\User;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Gate;
+use Inertia\Inertia;
 
 class PetController extends Controller
 {
@@ -11,7 +15,13 @@ class PetController extends Controller
      */
     public function index()
     {
-        //
+        Gate::authorize('viewAny', Pet::class);
+
+        $pets = Pet::with('owner')->get();
+
+        return Inertia::render('Pets/Index', [
+            'pets' => $pets,
+        ]);
     }
 
     /**
@@ -19,7 +29,13 @@ class PetController extends Controller
      */
     public function create()
     {
-        //
+        Gate::authorize('create', Pet::class);
+
+        $owners = User::where('role_id', 3)->get(); // Customers only
+
+        return Inertia::render('Pets/Create', [
+            'owners' => $owners,
+        ]);
     }
 
     /**
@@ -27,7 +43,19 @@ class PetController extends Controller
      */
     public function store(Request $request)
     {
-        //
+        Gate::authorize('create', Pet::class);
+
+        $validated = $request->validate([
+            'name' => 'required|string|max:255',
+            'species' => 'required|string|max:255',
+            'breed' => 'nullable|string|max:255',
+            'age' => 'required|integer|min:0',
+            'owner_id' => 'required|integer|exists:users,id',
+        ]);
+
+        Pet::create($validated);
+
+        return redirect()->route('pets.index')->with('success', 'Pet created successfully.');
     }
 
     /**
@@ -35,7 +63,13 @@ class PetController extends Controller
      */
     public function show(string $id)
     {
-        //
+        $pet = Pet::with('owner')->findOrFail($id);
+
+        Gate::authorize('view', $pet);
+
+        return Inertia::render('Pets/Show', [
+            'pet' => $pet,
+        ]);
     }
 
     /**
@@ -43,7 +77,16 @@ class PetController extends Controller
      */
     public function edit(string $id)
     {
-        //
+        $pet = Pet::findOrFail($id);
+
+        Gate::authorize('update', $pet);
+
+        $owners = User::where('role_id', 3)->get(); // Customers only
+
+        return Inertia::render('Pets/Edit', [
+            'pet' => $pet,
+            'owners' => $owners,
+        ]);
     }
 
     /**
@@ -51,7 +94,21 @@ class PetController extends Controller
      */
     public function update(Request $request, string $id)
     {
-        //
+        $pet = Pet::findOrFail($id);
+
+        Gate::authorize('update', $pet);
+
+        $validated = $request->validate([
+            'name' => 'required|string|max:255',
+            'species' => 'required|string|max:255',
+            'breed' => 'nullable|string|max:255',
+            'age' => 'required|integer|min:0',
+            'owner_id' => 'required|integer|exists:users,id',
+        ]);
+
+        $pet->update($validated);
+
+        return redirect()->route('pets.index')->with('success', 'Pet updated successfully.');
     }
 
     /**
@@ -59,6 +116,12 @@ class PetController extends Controller
      */
     public function destroy(string $id)
     {
-        //
+        $pet = Pet::findOrFail($id);
+
+        Gate::authorize('delete', $pet);
+
+        $pet->delete();
+
+        return redirect()->route('pets.index')->with('success', 'Pet deleted successfully.');
     }
 }

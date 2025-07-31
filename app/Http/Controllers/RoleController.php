@@ -2,7 +2,10 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Role;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Gate;
+use Inertia\Inertia;
 
 class RoleController extends Controller
 {
@@ -11,7 +14,13 @@ class RoleController extends Controller
      */
     public function index()
     {
-        //
+        Gate::authorize('viewAny', Role::class);
+
+        $roles = Role::all();
+
+        return Inertia::render('Roles/Index', [
+            'roles' => $roles,
+        ]);
     }
 
     /**
@@ -19,7 +28,9 @@ class RoleController extends Controller
      */
     public function create()
     {
-        //
+        Gate::authorize('create', Role::class);
+
+        return Inertia::render('Roles/Create');
     }
 
     /**
@@ -27,7 +38,15 @@ class RoleController extends Controller
      */
     public function store(Request $request)
     {
-        //
+        Gate::authorize('create', Role::class);
+
+        $validated = $request->validate([
+            'name' => 'required|string|max:255|unique:roles,name',
+        ]);
+
+        Role::create($validated);
+
+        return redirect()->route('roles.index')->with('success', 'Role created successfully.');
     }
 
     /**
@@ -35,7 +54,13 @@ class RoleController extends Controller
      */
     public function show(string $id)
     {
-        //
+        $role = Role::findOrFail($id);
+
+        Gate::authorize('view', $role);
+
+        return Inertia::render('Roles/Show', [
+            'role' => $role,
+        ]);
     }
 
     /**
@@ -43,7 +68,13 @@ class RoleController extends Controller
      */
     public function edit(string $id)
     {
-        //
+        $role = Role::findOrFail($id);
+
+        Gate::authorize('update', $role);
+
+        return Inertia::render('Roles/Edit', [
+            'role' => $role,
+        ]);
     }
 
     /**
@@ -51,7 +82,17 @@ class RoleController extends Controller
      */
     public function update(Request $request, string $id)
     {
-        //
+        $role = Role::findOrFail($id);
+
+        Gate::authorize('update', $role);
+
+        $validated = $request->validate([
+            'name' => 'required|string|max:255|unique:roles,name,' . $role->id,
+        ]);
+
+        $role->update($validated);
+
+        return redirect()->route('roles.index')->with('success', 'Role updated successfully.');
     }
 
     /**
@@ -59,6 +100,12 @@ class RoleController extends Controller
      */
     public function destroy(string $id)
     {
-        //
+        $role = Role::findOrFail($id);
+
+        Gate::authorize('delete', $role);
+
+        $role->delete();
+
+        return redirect()->route('roles.index')->with('success', 'Role deleted successfully.');
     }
 }

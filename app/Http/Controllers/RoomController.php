@@ -2,7 +2,10 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Room;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Gate;
+use Inertia\Inertia;
 
 class RoomController extends Controller
 {
@@ -11,7 +14,13 @@ class RoomController extends Controller
      */
     public function index()
     {
-        //
+        Gate::authorize('viewAny', Room::class);
+
+        $rooms = Room::all();
+
+        return Inertia::render('Rooms/Index', [
+            'rooms' => $rooms,
+        ]);
     }
 
     /**
@@ -19,7 +28,9 @@ class RoomController extends Controller
      */
     public function create()
     {
-        //
+        Gate::authorize('create', Room::class);
+
+        return Inertia::render('Rooms/Create');
     }
 
     /**
@@ -27,7 +38,17 @@ class RoomController extends Controller
      */
     public function store(Request $request)
     {
-        //
+        Gate::authorize('create', Room::class);
+
+        $validated = $request->validate([
+            'name' => 'required|string|max:255',
+            'description' => 'nullable|string',
+            'capacity' => 'required|integer|min:1',
+        ]);
+
+        Room::create($validated);
+
+        return redirect()->route('rooms.index')->with('success', 'Room created successfully.');
     }
 
     /**
@@ -35,7 +56,13 @@ class RoomController extends Controller
      */
     public function show(string $id)
     {
-        //
+        $room = Room::findOrFail($id);
+
+        Gate::authorize('view', $room);
+
+        return Inertia::render('Rooms/Show', [
+            'room' => $room,
+        ]);
     }
 
     /**
@@ -43,7 +70,13 @@ class RoomController extends Controller
      */
     public function edit(string $id)
     {
-        //
+        $room = Room::findOrFail($id);
+
+        Gate::authorize('update', $room);
+
+        return Inertia::render('Rooms/Edit', [
+            'room' => $room,
+        ]);
     }
 
     /**
@@ -51,7 +84,19 @@ class RoomController extends Controller
      */
     public function update(Request $request, string $id)
     {
-        //
+        $room = Room::findOrFail($id);
+
+        Gate::authorize('update', $room);
+
+        $validated = $request->validate([
+            'name' => 'required|string|max:255',
+            'description' => 'nullable|string',
+            'capacity' => 'required|integer|min:1',
+        ]);
+
+        $room->update($validated);
+
+        return redirect()->route('rooms.index')->with('success', 'Room updated successfully.');
     }
 
     /**
@@ -59,6 +104,12 @@ class RoomController extends Controller
      */
     public function destroy(string $id)
     {
-        //
+        $room = Room::findOrFail($id);
+
+        Gate::authorize('delete', $room);
+
+        $room->delete();
+
+        return redirect()->route('rooms.index')->with('success', 'Room deleted successfully.');
     }
 }
